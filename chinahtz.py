@@ -108,7 +108,6 @@ class Chinaahtz:
                     url_prefix = 'https://www.chinahtz.com/FincProj/FincProjefpdetail.do?id='
                     url_project = url_prefix + i.get_attribute('onclick').split('(')[1].split(',')[0]
                     list_urls_single.append(url_project)
-                print (list_urls_single)
                 return list_urls_single
 
             driver = set_filter(sector=sector, sector_sub=sector_sub, area=area, amount=amount, stage=stage,label=label)
@@ -142,23 +141,18 @@ class Chinaahtz:
 
             # 项目名称
             name = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[1]").text.strip()
-            print (name)
 
             # 行业
             industry = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[2]").text.strip()
-            print (industry)
 
             # 轮次
             round = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[3]/ul/li[1]").text.strip()
-            print (round)
 
             # 融资额
             amount = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[3]/ul/li[2]").text.strip()
-            print (amount)
 
             # 城市
             city = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[3]/ul/li[3]").text.strip()
-            print (city)
 
             # 项目介绍
             project_info = driver.find_elements_by_xpath("//*[@id='descri_content']")[0].text.strip()
@@ -197,7 +191,6 @@ class Chinaahtz:
             company_date_found = driver.find_element_by_xpath("//*[@id='projectBasicInfo']/tbody/tr[3]/td[2]").text
             company_capital = driver.find_element_by_xpath("//*[@id='projectBasicInfo']/tbody/tr[4]/td[2]").text
             company_sector = driver.find_element_by_xpath("//*[@id='projectBasicInfo']/tbody/tr[5]/td[2]").text
-            print(company_info, company_name, company_id, company_date_found, company_capital, company_sector)
 
             # 查看该项目投资人
             # TODO: 项目投资人需要爬取全量列表，优先级较低
@@ -208,32 +201,23 @@ class Chinaahtz:
             try:
                 contact_phone = driver.find_elements_by_xpath("//*[@id='project_lxfs']/ul/li[1]")[1].text.split(";")[1].strip()
             except:
-                contact_phone = ''
+                contact_phone = '互递名片后可见'
             try:
                 contact_email = driver.find_element_by_xpath("//*[@id='project_lxfs']/ul/li[2]/a").text
             except:
-                contact_email = ''
-            print (contact_phone, contact_email)
+                contact_email = '互递名片后可见'
 
             # 推荐单位
             referrer = driver.find_element_by_xpath("/html/body/div[3]/div/div[2]/div[2]/div/div[2]/ul/li/a").text
             referrer_url = driver.find_element_by_xpath("/html/body/div[3]/div/div[2]/div[2]/div/div[2]/ul/li/a").get_attribute('href')
-            print(referrer, referrer_url)
 
             # 商业计划书
-            # https://www.chinahtz.com/fileUpload/2019-5/3cc87e7a-7030-422a-9cb1-eb781e2b587d.pdf
-            # https://www.chinahtz.com/downLoad/openProjFileView.do?name=2cd2b075-ff32-4a3f-96db-dd26b90953df.pdf&title=0&id=12894
             url_bp_name = driver.find_element_by_xpath("/html/body/div[3]/div/div[2]/div[3]/div/div[2]/ul/li/a").get_attribute('onclick').split('(')[1].split(',')[0][1:-1]
-            print (url_bp_name)
             url_bp_title = driver.find_element_by_xpath("/html/body/div[3]/div/div[2]/div[3]/div/div[2]/ul/li/a").get_attribute('onclick').split(',')[1].split(',')[0][1:-1]
-            print (url_bp_title)
             url_bp_id = driver.find_element_by_xpath("/html/body/div[3]/div/div[2]/div[3]/div/div[2]/ul/li/a").get_attribute('onclick').split(',')[2].split(')')[0]
-            print (url_bp_id)
             url_bp = 'https://www.chinahtz.com/downLoad/openProjFileView.do?name={}&title={}&id={}'.format(url_bp_name, url_bp_title, url_bp_id)
-            print (url_bp)
             driver.get(url_bp)
             url_bp = driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[3]/iframe").get_attribute('src')
-            print (url_bp)
 
             # 导出所有信息
             dict_single = {'项目名称': name,
