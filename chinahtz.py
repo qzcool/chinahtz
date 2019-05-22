@@ -117,15 +117,13 @@ class Chinaahtz:
             list_urls += list_urls_single
             print('开始获取当前筛选条件下的所有项目页链接。Windows平台下，请勿最小化浏览器。')
             # TODO： DEBUG为什么只有前四页可以爬取
-            for i in tqdm(range(pages_number - 1)): # 默认-1/14
-                print (i)
+            for i in tqdm(range(pages_number - 14)): # 默认-1/14
                 change_page()
                 list_urls_single = get_list_urls_single()
                 list_urls += list_urls_single
 
             # 去除重复链接
             print ("开始去除重复链接:长度", len(list_urls))
-            print (list_urls)
             list_urls = list(set(list_urls))
             print ("结束去除重复链接:长度", len(list_urls))
             return list_urls
@@ -155,34 +153,44 @@ class Chinaahtz:
             city = driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[2]/div/div/div[3]/ul/li[3]").text.strip()
 
             # 项目介绍
-            project_info = driver.find_elements_by_xpath("//*[@id='descri_content']")[0].text.strip()
-            print (project_info)
+            project_info = driver.find_elements_by_xpath("//*[@id='descri_content']")[0].text.strip()[4:].strip()
 
             # 核心成员：姓名，职位，介绍
             # TODO: 将核心成员变为列表JSON
-            # core_name = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[2]").text.strip()
-            # try:
-            #     core_title = driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[2]/span")[0].text.strip()
-            # except:
-            #     core_title = driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[2]/span").text.strip()
-            # core_info = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[2]/span/div").text.strip()
-            core_name, core_title, core_info = '', '', ''
-            print (core_name, core_title, core_info)
+            list_core = []
+            core_counts = len(driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[3]"))
+            for i in range(core_counts):
+                core_info = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[{}]/span/div".format(i+2)).text.strip()
+
+                try:
+                    core_title = driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[{}]/span".format(i+2))[0].text.strip()
+                except:
+                    core_title = driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[{}]/span".format(i+2)).text.strip()
+                core_title = core_title.replace(core_info, '')
+
+                core_name = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[3]/div[{}]".format(i+2)).text.strip()
+                core_name = core_name.replace(core_title, '')
+
+                list_core.append([core_name, core_title, core_info])
+
+            json_core = json.dumps(list_core, ensure_ascii=False)
+            # print (json_core)
 
             # 股权结构
             # TODO:DEBUG股权结构不显示
             try:
                 list_shares = []
-                for i in driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[4]/div[2]/ul/li"):
-                    shares_holder = i.split(' 丨 ')[0]
-                    shares_percentage = i.text.split('：')[1]
+                shares_counts = len(driver.find_elements_by_xpath("/html/body/div[3]/div/div[1]/div[4]/div[2]/ul"))
+                print (shares_counts)
+                for i in range(shares_counts):
+                    shares_holder = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[4]/div[2]/ul[{}]/li".format(i+1)).split(' 丨 ')[0]
+                    shares_percentage = driver.find_element_by_xpath("/html/body/div[3]/div/div[1]/div[4]/div[2]/ul[{}]/li/span".format(i+1))
                     list_shares.append([shares_holder, shares_percentage])
-
                 json_shares = json.dumps(list_shares, ensure_ascii=False)
             except:
                 print("无股权结构：", url)
                 json_shares = ''
-            print (json_shares)
+            # print (json_shares)
 
             # 公司介绍:公司介绍、企业名称、工商注册号、成立时间、注册资本、所属行业
             company_info = driver.find_element_by_xpath("//*[@id='intrds_content']").text
@@ -226,9 +234,7 @@ class Chinaahtz:
                            '融资额': amount,
                            '城市': city,
                            '项目介绍': project_info,
-                           '核心成员姓名': core_name,
-                           '核心成员职位': core_title,
-                           '核心成员介绍': core_info,
+                           '核心成员': json_core,
                            '股权结构': json_shares,
                            '公司介绍': company_info,
                            '企业名称': company_name,
@@ -257,7 +263,6 @@ class Chinaahtz:
 
             # 循环获取单项目信息并保存为df
             print("开始获取项目具体信息。")
-            print (list_urls)
             dict_all = {}
             list_sequence = 0
             df = pd.DataFrame()
